@@ -13,20 +13,39 @@ const Login = () => {
 
     const onSubmit = async (e) => {
         e.preventDefault()
-        if(!isSigningIn) {
+        setErrorMessage('') // Clear previous error messages
+        if (!isSigningIn) {
             setIsSigningIn(true)
-            await doSignInWithEmailAndPassword(email, password)
-            // doSendEmailVerification()
+            try {
+                await doSignInWithEmailAndPassword(email, password)
+            } catch (error) {
+                setIsSigningIn(false)
+                // Handle specific error codes returned by Firebase Auth
+                if (error.code === 'auth/user-not-found') {
+                    setErrorMessage('There is no existing user record for this email')
+                } else if (error.code === 'auth/invalid-email') {
+                    setErrorMessage('Invalid email address.')
+                } else if (error.code === 'auth/invalid-password') {
+                    setErrorMessage('Invalid password.')
+                } else {
+                    setErrorMessage('An unexpected error occurred. Please try again.')
+                }
+            }
         }
     }
 
-    const onGoogleSignIn = (e) => {
+    const onGoogleSignIn = async (e) => {
         e.preventDefault()
+        setErrorMessage('') // Clear previous error messages
         if (!isSigningIn) {
             setIsSigningIn(true)
-            doSignInWithGoogle().catch(err => {
+            try {
+                await doSignInWithGoogle()
+            } catch (error) {
                 setIsSigningIn(false)
-            })
+                // Handle Google Sign-In specific errors if needed
+                setErrorMessage('Google sign-in failed. Please try again.')
+            }
         }
     }
 
@@ -57,7 +76,6 @@ const Login = () => {
                                 className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-indigo-600 shadow-sm rounded-lg transition duration-300"
                             />
                         </div>
-
 
                         <div>
                             <label className="text-sm text-gray-600 font-bold">
