@@ -5,14 +5,14 @@ import { doCreateUserWithEmailAndPassword } from '../../../firebase/auth'
 
 const Register = () => {
     const navigate = useNavigate()
+    const { userLoggedIn } = useAuth()
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [role, setRole] = useState('parent-scout') // Default role
     const [isRegistering, setIsRegistering] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
-
-    const { userLoggedIn } = useAuth()
 
     const onSubmit = async (e) => {
         e.preventDefault()
@@ -32,7 +32,7 @@ const Register = () => {
         if (!isRegistering) {
             setIsRegistering(true)
             try {
-                await doCreateUserWithEmailAndPassword(email, password)
+                await doCreateUserWithEmailAndPassword(email, password, role)
                 navigate('/home') // Redirect user on successful registration
             } catch (error) {
                 setIsRegistering(false)
@@ -105,6 +105,23 @@ const Register = () => {
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-indigo-600 shadow-sm rounded-lg transition duration-300"
                             />
+                        </div>
+
+                        <div>
+                            <label className="text-sm text-gray-600 font-bold">
+                                Role
+                            </label>
+                            <select
+                                required
+                                disabled={isRegistering}
+                                value={role}
+                                onChange={(e) => setRole(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-indigo-600 shadow-sm rounded-lg transition duration-300"
+                            >
+                                <option value="parent-scout">Parent/Scout</option>
+                                <option value="cookie-manager">Cookie Manager</option>
+                                <option value="troop-leader">Troop Leader</option>
+                            </select>
                         </div>
 
                         {errorMessage && (
