@@ -8,7 +8,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 // export const doCreateUserWithEmailAndPassword = async (email, password) => {
 //   return createUserWithEmailAndPassword(auth, email, password);
@@ -30,7 +30,7 @@ export const doCreateUserWithEmailAndPassword = async (email, password, role) =>
     return user;
   } catch (error) {
     console.error("Error creating user:", error);
-    throw error; // Propagate the error to the calling function
+    throw error; 
   }
 };
 
@@ -41,10 +41,27 @@ export const doSignInWithEmailAndPassword = (email, password) => {
 
 export const doSignInWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  const user = result.user;
+  
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
 
-  // Save user role in Firestore if needed after Google sign-in (you can modify this based on your requirements)
+    // Check if user already exists in Firestore
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    // If user does not exist in Firestore, add them with default role
+    if (!userDoc.exists()) {
+      await setDoc(userDocRef, {
+        email: user.email,
+        role: "Parent/Scout", // Default role
+        createdAt: new Date(),
+      });
+    }
+  } catch (error) {
+    console.error("Error during Google Sign-In:", error);
+    throw error; 
+  }
 };
 
 export const doSignOut = () => {
